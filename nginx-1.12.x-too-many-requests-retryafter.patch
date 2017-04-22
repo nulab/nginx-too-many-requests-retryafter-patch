@@ -1,0 +1,57 @@
+Binary files nginx-1.12.0/.git/index and nginx-1.12.0-retry-after-patched/.git/index differ
+diff -Bbu -ur nginx-1.12.0/src/http/modules/ngx_http_limit_req_module.c nginx-1.12.0-retry-after-patched/src/http/modules/ngx_http_limit_req_module.c
+--- nginx-1.12.0/src/http/modules/ngx_http_limit_req_module.c	2017-04-23 00:15:13.000000000 +0900
++++ nginx-1.12.0-retry-after-patched/src/http/modules/ngx_http_limit_req_module.c	2017-04-23 00:19:53.000000000 +0900
+@@ -164,6 +164,9 @@
+     ngx_http_limit_req_ctx_t    *ctx;
+     ngx_http_limit_req_conf_t   *lrcf;
+     ngx_http_limit_req_limit_t  *limit, *limits;
++    ngx_table_elt_t             *h;
++    ngx_uint_t                  rate;
++    u_char                      *ra;
+ 
+     if (r->main->limit_req_set) {
+         return NGX_DECLINED;
+@@ -173,6 +176,7 @@
+     limits = lrcf->limits.elts;
+ 
+     excess = 0;
++    rate = 0;
+ 
+     rc = NGX_DECLINED;
+ 
+@@ -216,6 +220,7 @@
+                        n, rc, excess / 1000, excess % 1000);
+ 
+         if (rc != NGX_AGAIN) {
++            rate = ctx->rate;
+             break;
+         }
+     }
+@@ -233,6 +238,17 @@
+                           "limiting requests, excess: %ui.%03ui by zone \"%V\"",
+                           excess / 1000, excess % 1000,
+                           &limit->shm_zone->shm.name);
++
++            if ( rate > 0 && (ra = ngx_palloc(r->pool, sizeof("1000"))) != NULL){
++                h = ngx_list_push(&r->headers_out.headers);
++                if ( h != NULL ){
++                    h->hash = 1;
++                    ngx_str_set(&h->key, "Retry-After");
++                    ngx_sprintf(ra, "%ui", (rate >= 1000) ? 1 : 1000/rate);
++                    h->value.len = ngx_strlen(ra);
++                    h->value.data = ra;
++                }
++            }
+         }
+ 
+         while (n--) {
+@@ -712,7 +728,7 @@
+                                 NGX_LOG_INFO : conf->limit_log_level + 1;
+ 
+     ngx_conf_merge_uint_value(conf->status_code, prev->status_code,
+-                              NGX_HTTP_SERVICE_UNAVAILABLE);
++                              NGX_HTTP_TOO_MANY_REQUESTS);
+ 
+     return NGX_CONF_OK;
+ }
