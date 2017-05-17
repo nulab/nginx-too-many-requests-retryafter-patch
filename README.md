@@ -3,9 +3,9 @@
 ## Installation
 
 ```
-tar zxfv nginx-1.6.0.tar.gz
-cd nginx-1.6.0
-patch -p1 < ../nginx-1.6.x-too-many-requests-retryafter.patch
+tar zxfv nginx-1.12.0.tar.gz
+cd nginx-1.12.0
+patch -p1 < ../nginx-1.12.x-too-many-requests-retryafter.patch
 ./configure ...
 ```
 
