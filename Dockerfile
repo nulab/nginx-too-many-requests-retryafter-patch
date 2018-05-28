@@ -1,8 +1,8 @@
 FROM alpine:3.5
 
 MAINTAINER Taichiro Yoshida "taichiro.yoshida@nulab-inc.com"
-LABEL version=1.12.0
-ENV NGINX_VERSION 1.12.0
+LABEL version=1.14.0
+ENV NGINX_VERSION 1.14.0
 STOPSIGNAL SIGQUIT
 EXPOSE 80
 
@@ -26,7 +26,7 @@ RUN addgroup -S nginx \
 && tar -zxC /usr/src -f nginx.tar.gz \
 && rm nginx.tar.gz
 
-COPY nginx-1.12.x-too-many-requests-retryafter.patch /usr/src/nginx-$NGINX_VERSION/nginx-too-many-requests-retryafter.patch
+COPY nginx-too-many-requests-retryafter.patch /usr/src/nginx-$NGINX_VERSION/nginx-too-many-requests-retryafter.patch
 COPY nginx.conf /usr/src/nginx-$NGINX_VERSION/nginx.conf
 
 CMD cd /usr/src/nginx-$NGINX_VERSION \
