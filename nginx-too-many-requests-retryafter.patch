@@ -1,7 +1,8 @@
-diff -Bbu -ur nginx-1.16.1/src/http/modules/ngx_http_limit_req_module.c nginx-1.16.0-retry-after-pached/src/http/modules/ngx_http_limit_req_module.c
---- nginx-1.16.1/src/http/modules/ngx_http_limit_req_module.c	2019-08-13 21:51:43.000000000 +0900
-+++ nginx-1.16.0-retry-after-pached/src/http/modules/ngx_http_limit_req_module.c	2019-10-08 12:16:08.422640718 +0900
-@@ -164,6 +164,9 @@
+diff --git a/src/http/modules/ngx_http_limit_req_module.c b/src/http/modules/ngx_http_limit_req_module.c
+index 6bd3e6a..a41d849 100644
+--- a/src/http/modules/ngx_http_limit_req_module.c
++++ b/src/http/modules/ngx_http_limit_req_module.c
+@@ -200,6 +200,9 @@ ngx_http_limit_req_handler(ngx_http_request_t *r)
      ngx_http_limit_req_ctx_t    *ctx;
      ngx_http_limit_req_conf_t   *lrcf;
      ngx_http_limit_req_limit_t  *limit, *limits;
@@ -9,9 +10,9 @@ diff -Bbu -ur nginx-1.16.1/src/http/modules/ngx_http_limit_req_module.c nginx-1.
 +    ngx_uint_t                  rate;
 +    u_char                      *ra;
  
-     if (r->main->limit_req_set) {
+     if (r->main->limit_req_status) {
          return NGX_DECLINED;
-@@ -173,6 +176,7 @@
+@@ -209,6 +212,7 @@ ngx_http_limit_req_handler(ngx_http_request_t *r)
      limits = lrcf->limits.elts;
  
      excess = 0;
@@ -19,7 +20,7 @@ diff -Bbu -ur nginx-1.16.1/src/http/modules/ngx_http_limit_req_module.c nginx-1.
  
      rc = NGX_DECLINED;
  
-@@ -216,6 +220,7 @@
+@@ -252,6 +256,7 @@ ngx_http_limit_req_handler(ngx_http_request_t *r)
                         n, rc, excess / 1000, excess % 1000);
  
          if (rc != NGX_AGAIN) {
@@ -27,10 +28,10 @@ diff -Bbu -ur nginx-1.16.1/src/http/modules/ngx_http_limit_req_module.c nginx-1.
              break;
          }
      }
-@@ -233,6 +238,16 @@
-                           "limiting requests, excess: %ui.%03ui by zone \"%V\"",
-                           excess / 1000, excess % 1000,
-                           &limit->shm_zone->shm.name);
+@@ -268,6 +273,16 @@ ngx_http_limit_req_handler(ngx_http_request_t *r)
+                         lrcf->dry_run ? ", dry run" : "",
+                         excess / 1000, excess % 1000,
+                         &limit->shm_zone->shm.name);
 +
 +            if ( rate > 0 && (ra = ngx_palloc(r->pool, sizeof("1000"))) != NULL){
 +                h = ngx_list_push(&r->headers_out.headers);
@@ -44,12 +45,12 @@ diff -Bbu -ur nginx-1.16.1/src/http/modules/ngx_http_limit_req_module.c nginx-1.
          }
  
          while (n--) {
-@@ -733,7 +748,7 @@
+@@ -804,7 +819,7 @@ ngx_http_limit_req_merge_conf(ngx_conf_t *cf, void *parent, void *child)
                                  NGX_LOG_INFO : conf->limit_log_level + 1;
  
      ngx_conf_merge_uint_value(conf->status_code, prev->status_code,
 -                              NGX_HTTP_SERVICE_UNAVAILABLE);
 +                              NGX_HTTP_TOO_MANY_REQUESTS);
  
-     return NGX_CONF_OK;
- }
+     ngx_conf_merge_value(conf->dry_run, prev->dry_run, 0);
+ 
