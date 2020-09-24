@@ -1,8 +1,8 @@
 FROM alpine:3.5
 
 MAINTAINER Taichiro Yoshida "taichiro.yoshida@nulab-inc.com"
-LABEL version=1.16.1
-ENV NGINX_VERSION 1.16.1
+LABEL version=1.19.2
+ENV NGINX_VERSION 1.19.2
 STOPSIGNAL SIGQUIT
 EXPOSE 80
 
